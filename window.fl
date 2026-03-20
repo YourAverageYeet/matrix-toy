@@ -1,0 +1,74 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0308
+header_name {.h}
+code_name {.cxx}
+decl {\#include "../mat.h"} {
+  comment {// Necessary for matrix work.} public global
+}
+
+Function {make_main_win(Matrix33* mat, bool* r)} {
+  comment {Creates the GUI interaction window.} open
+} {
+  Fl_Window mat_win {
+    label {Matrix Window} open
+    xywh {227 395 305 265} type Double visible
+  } {
+    Fl_Box mat_title {
+      label {Manipulate Transform Matrix}
+      xywh {40 10 225 25} labeltype ENGRAVED_LABEL
+    }
+    Fl_Value_Input mat_x_1 {
+      label {Scale X}
+      xywh {25 60 65 25} align 1
+    }
+    Fl_Value_Input mat_x_2 {
+      label {Skew X}
+      xywh {120 60 65 25} align 1
+    }
+    Fl_Value_Input mat_x_3 {
+      label {Trans. X}
+      xywh {215 60 65 25} align 1
+    }
+    Fl_Value_Input mat_y_1 {
+      label {Skew Y}
+      xywh {25 110 65 25} align 1
+    }
+    Fl_Value_Input mat_y_2 {
+      label {Scale Y}
+      xywh {120 110 65 25} align 1
+    }
+    Fl_Value_Input mat_y_3 {
+      label {Trans. Y}
+      xywh {215 110 65 25} align 1
+    }
+    Fl_Value_Input mat_z_1 {
+      label {Persp. X}
+      xywh {25 160 65 25} align 1
+    }
+    Fl_Value_Input mat_z_2 {
+      label {Persp. Y}
+      xywh {120 160 65 25} align 1
+    }
+    Fl_Value_Input mat_z_3 {
+      label {"Trans. Z"} selected
+      xywh {215 160 65 25} align 1
+    }
+    Fl_Button mat_view_reset {
+      label {Reset View}
+      user_data r user_data_type {bool*}
+      callback cb_mat_view_reset
+      xywh {25 195 85 25} shortcut 0xff1b
+    }
+    Fl_Return_Button mat_apply_button {
+      label {Apply Transform}
+      user_data mat user_data_type {Matrix33*}
+      callback cb_mat_apply
+      xywh {130 195 150 25}
+    }
+    Fl_Light_Button mat_keyed_mode {
+      label {Switch to/from SDL2 Keys Mode}
+      callback cb_keyed_mode
+      xywh {35 230 235 25}
+    }
+  }
+}

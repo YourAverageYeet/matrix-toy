@@ -1,0 +1,251 @@
+#!/usr/bin/bash
+
+# You are now building with power.
+#   ∧ ∧
+# ( ･ω･)つ━☆・*。
+# ⊂    ノ 　　　・゜+.
+# しーＪ　　　°。+ *´¨)
+#                 .· ´¸.·*´¨) ¸.·*¨)
+#                 (¸.·´ (¸.·'* ☆ *BUILD2*
+
+# Any and all values between this point and the line of stars below are editable
+# by the developer/user as needed. The values are labeled and, any special
+# formats are explained before they are used.
+
+PROGNAME='matrix-toy'         # The name of the program being built.
+
+FAST_BUILD=0        # Whether the build should be multithreaded or not
+
+# The three arrays below are used to generate the flag toggle screen. Entries
+# should line up across each list.
+
+FLAG_NAMES=()
+
+FLAG_DESCS=()
+
+FLAG_STATES=()
+
+# Similar to the flag lists above, the following three lists create the
+# toolchain selection screen. Again, make sure that entries line up.
+
+TC_NAMES=()
+
+TC_DESCS=()
+
+TC_PATHS=()
+
+#*******************************************************************************
+
+if (( ( ${#FLAG_NAMES[@]} != ${#FLAG_DESCS[@]} ) || \
+      ( ${#FLAG_NAMES[@]} != ${#FLAG_STATES[@]} ) )); then
+    echo "Length mismatch in \$FLAG_NAMES, \$FLAG_DESCS, and/or \$FLAG_STATES."
+    echo ""
+    echo "Please edit the script to correct this discrepancy."
+    exit
+fi
+
+if (( ( ${#TC_NAMES[@]} != ${#TC_DESCS[@]} ) || \
+      ( ${#TC_NAMES[@]} != ${#TC_PATHS[@]} ) )); then
+    echo "Length mismatch in \$TC_NAMES, \$TC_DESCS, and/or \$TC_PATHS."
+    echo ""
+    echo "Please edit the script to correct this discrepancy."
+    exit
+fi
+
+width=$(($(tput cols) - 8))
+height=$(($(tput lines) - 4))
+
+usable_w=$(( $width - 4 ))
+usable_h=$(( $height - 6 ))
+
+bb_str="You are now building ${PROGNAME}"
+bb_len=${#bb_str}
+
+pb_str="Please press [ ENTER ] to continue."
+pb_len=${#pb_str}
+
+ih=$(( ( $usable_h - 2 ) / 2 ))
+printf -v cent_h '%.0s\n' $(seq 1 $ih)
+
+if (( $bb_len < $pb_len )); then
+    count=$(( ( $pb_len - $bb_len ) / 2 ))
+    printf -v in "%${count}s"
+    iw=$(( ( $usable_w - $pb_len ) / 2 ))
+    printf -v cent_w "%${iw}s"
+    start_str="${cent_h}${cent_w}${in}${bb_str}\n${cent_w}${pb_str}"
+elif (( $bb_len > $pb_len )); then
+    count=$(( ( $bb_len - $pb_len ) / 2 ))
+    printf -v in "%${count}s"
+    iw=$(( ( $usable_w - $bb_len ) / 2 ))
+    printf -v cent_w "%${iw}s"
+    start_str="${cent_h}${cent_w}${bb_str}\n${cent_w}${in}${pb_str}"
+else
+    iw=$(( ( $usable_w - $bb_len ) / 2 ))
+    printf -v cent_w "%${iw}s"
+    start_str="${cent_h}${cent_w}${bb_str}\n${cent_w}${pb_str}"
+fi
+
+whiptail --title "${PROGNAME} Build Script" --msgbox "$start_str" $height $width
+
+bs_str="Please select the kind of build desired:"
+iw=$(( ( $usable_w - ${#bs_str} ) / 2 ))
+printf -v cent_w "%${iw}s"
+ih=$(( ( $usable_h - ( 4 + 1 + 1 ) ) / 2 ))
+printf -v cent_h '%.0s\n' $(seq 1 $ih)
+
+build=$(whiptail --title "${PROGNAME}: Select build type" --menu \
+"${cent_h}${cent_w}${bs_str}" $height $width 4 \
+"Debug" "Debug build with no optimizations" \
+"Release" "Optimized build for performance" \
+"RelWithDebInfo" "Optimized build *with debug info*" \
+"MinSizeRel" "Build optimized for minimum binary size" \
+3>&1 1>&2 2>&3)
+
+if [[ $? != 0 ]]; then
+    echo "User exited during build type selection."
+    exit 1
+fi
+
+echo "Selected build type: $build"
+
+EXTRA_CMAKE_ARGS=()
+
+if [[ ${#TC_NAMES[@]} != 0 ]]; then
+    echo "Multiple toolchains possible; deleting build dir for fresh config."
+
+    rm -rf "./build"
+
+    bs_str="Please select the desired toolchain:"
+    iw=$(( ( $usable_w - ${#bs_str} ) / 2 ))
+    printf -v cent_w "%${iw}s"
+    ih=$(( ( $usable_h - ( 4 + 1 + 1 ) ) / 2 ))
+    printf -v cent_h '%.0s\n' $(seq 1 $ih)
+
+    tc_list=("Native" "Use the native compiler toolchain provided by CMake")
+
+    for i in "${!TC_NAMES[@]}"; do
+        tc_list+=("${TC_NAMES[i]}" "${TC_DESCS[i]}")
+    done
+
+    tc_len=$(( ${#TC_NAMES[@]} + 1 ))
+
+    tc_choice=$(whiptail --title "${PROGNAME}: Select compiler toolchain" \
+    --menu "${cent_h}${cent_w}${bs_str}" $height $width $tc_len \
+    "${tc_list[@]}" 3>&1 1>&2 2>&3)
+
+    if [[ $? != 0 ]]; then
+        echo "User exited during toolchain selection."
+        exit 1
+    fi
+
+    echo "User picked $tc_choice"
+
+    if [[ "$tc_choice" != "Native" ]]; then
+        found=0
+        i=0
+        while [[ $found != 1 ]]; do
+            if [[ "$tc_choice" == "${TC_NAMES[i]}" ]]; then
+                found=1
+                tc_path="${TC_PATHS[i]}"
+            fi
+            ((i++))
+        done
+
+        cmake -S . -B "./probe" -Wno-dev \
+        -DCMAKE_TOOLCHAIN_FILE="${tc_path}" &> /dev/null
+
+        ADDED_FLAGS=()
+
+        while IFS=$'\t' read -r tag desc status; do
+            ADDED_FLAGS+=( "$tag" "$desc" "$status")
+        done < <(
+            awk -F'[:=]' '
+                BEGIN { OFS="\t" }
+                # Lines like: // description...
+                /^\/\// {
+                    desc=$0
+                    sub(/^\/\/[[:space:]]*/,"",desc)
+                    next
+                }
+                # Cache entries: NAME:TYPE=VALUE, skip ones starting with CMAKE_
+                /^[^#][A-Za-z0-9_]+:[A-Z]+=/ && $1 !~ /^CMAKE_/ {
+                    name=$1
+                    type=$2
+                    val = substr($0, index($0, "=")+1)
+
+                    if (type=="BOOL") {
+                        # Normalize to ON/OFF
+                        up=val
+                        gsub(/[[:space:]]+/,"",up)
+                        up=toupper(up)
+                        if (up=="TRUE") up="ON"; else if (up=="FALSE") up="OFF";
+                        print name, (desc?desc:""), up
+                    }
+                    desc=""
+                }
+            ' "./probe/CMakeCache.txt"
+        )
+
+        rm -rf "./probe"
+    fi
+fi
+
+if [[ ${#FLAG_NAMES[@]} != 0 || -v ADDED_FLAGS ]]; then
+    flag_list=()
+
+    if [[ -v ADDED_FLAGS ]]; then
+        flag_list+=( "${ADDED_FLAGS[@]}" )
+    fi
+
+    for i in "${!FLAG_NAMES[@]}"; do
+        if [ -f ./build/CMakeCache.txt ]; then
+            cmake -B ./build -U "${FLAG_NAMES[i]}"
+            echo "Unset ${FLAG_NAMES[i]}"
+        fi
+        flag_list+=( "${FLAG_NAMES[i]}" \
+        "${FLAG_DESCS[i]}" "${FLAG_STATES[i]}" )
+    done
+
+    switch_list=()
+
+    flags=$(whiptail --title "${PROGNAME}: Toggle desired flags" --checklist \
+    "Please select the flags you wish to enable:" $height $width \
+    ${#FLAG_NAMES[@]} "${flag_list[@]}" 3>&1 1>&2 2>&3)
+
+    if [[ $? != 0 ]]; then
+        echo "User exited during flag customization."
+        exit 1
+    fi
+
+    echo "Chosen flags: $flags"
+
+    eval "sel_list=($flags)"
+
+    for f in ${sel_list[@]}; do
+        switch_list+=( "-D$f=ON" )
+    done
+
+    if [[ -v tc_path ]]; then
+        switch_list+=( "-DCMAKE_TOOLCHAIN_FILE=${tc_path}" )
+    fi
+
+    echo "Switches: ${switch_list[@]}"
+fi
+
+cmake -S . -B ./build -DCMAKE_BUILD_TYPE=${build} ${switch_list[@]}
+
+cd ./build
+
+if [[ "$1" != "-y"  &&  "$1" != "--auto" ]]; then
+    echo -e "\nPress any key to continue..."
+    read -n1 -r
+fi
+
+if [[ FAST_BUILD == 1 ]]; then
+    cores="-j$(nproc || echo 4)"
+else
+    cores=""
+fi
+
+make $cores
+make install
