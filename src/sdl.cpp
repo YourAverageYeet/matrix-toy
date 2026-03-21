@@ -80,10 +80,11 @@ void SDLVisualizer::clearCanvas() const {
     SDL_RenderClear(rend);
 }
 
-void SDLVisualizer::processEvents(Matrix33& base, double& ang, bool& e) const {
+void SDLVisualizer::processEvents(Matrix33& base, double& ang,
+    bool& e, char keys) const {
     SDL_Event ev;
     SDL_PollEvent(&ev);
-    if(ev.type == SDL_KEYDOWN){
+    if(ev.type == SDL_KEYDOWN && keys){
         switch(ev.key.keysym.sym){
             case(SDLK_ESCAPE): {
                 e = true;

@@ -68,16 +68,22 @@ int main(void){
     win->show();
     drawShape(vis, baseShape, (baseMat * rotMat), worldMat);
     while(!exit && Fl::check()){
+        char useKeys = mat_keyed_mode->value();
         if(reset){
             baseMat = ident33;
             theta = 0.0;
             makeRotation(rotMat, theta);
             reset = false;
         }
-        vis.processEvents(baseMat, theta, exit);
+        vis.processEvents(
+            baseMat,
+            theta,
+            exit,
+            useKeys
+        );
         makeRotation(rotMat, theta);
         Matrix33 multMat = baseMat * rotMat;
-        if(mat_keyed_mode->value()){
+        if(useKeys){
             mat_x_1->value(multMat.getMatValue(0, 0));
             mat_x_2->value(multMat.getMatValue(0, 1));
             mat_x_3->value(multMat.getMatValue(0, 2));

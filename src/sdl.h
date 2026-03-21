@@ -37,7 +37,8 @@ class SDLVisualizer {
         void redraw() const;
         void drawScreenShape(std::vector<ScreenPoint>& points) const;
         void clearCanvas() const;
-        void processEvents(Matrix33& base, double& ang, bool& e) const;
+        void processEvents(Matrix33& base, double& ang,
+            bool& e, char keys) const;
 };
 
 
