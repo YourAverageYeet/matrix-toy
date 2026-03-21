@@ -9,9 +9,14 @@ and try to build with MSYS2, though I have not tested this myself. These should
 be installed through your package manager so that dependencies are handled for
 you.
 
-- FLTK version 1.3.X; I build with 1.3.8, but the latest is 1.3.11
-- SDL2; `sdl2-config` reports `2.30.0` when run with the argument `--version` on
-my system
+**NOTE:** the `+` markers indicated compatibility with later versions *in
+the same family*. For FLTK this means using the older 1.3 line (latest version
+is 1.3.11) instead of the more modern 1.4 release or 1.5 development lines. 
+Similarly for SDL, this means that any version of SDL2 after 2.30 is supported
+(the latest at time of writing is SDL 2.32.8).
+
+- Fast Lightweight ToolKit, version 1.3.8+
+- Simple DirectMedia Layer, version 2.30+
 
 The following command will let you install all the necessary libraries and
 development packages at once, provided your WSL instance is Ubuntu:
@@ -30,7 +35,7 @@ sudo apt install libfltk1.3t64 \
                  libsdl2-mixer-2.0-0 \
                  libsdl2-net-2.0-0 \
                  libsdl2-ttf-2.0-0 \
-                 libsdl2-ttf-dev 
+                 libsdl2-ttf-dev
 ```
 
 [CMake](https://cmake.org/download/) is required to build this software. If you
