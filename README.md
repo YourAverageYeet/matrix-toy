@@ -3,6 +3,64 @@
 This is a mixed FLTK/SDL program that lets one play with matrix transforms and
 see how such mathematical operations affect graphics.
 
+## Matrix Edit Window (FLTK 1.3)
+<p style="text-align: center">
+    <img  src="img/mat-win.png" />
+</p>
+
+This window allows for direct editing of the transform matrix's terms. After
+changing values as you see fit, either click "Apply Transform" or press enter
+to see the resulting transform. Clicking "Reset View" will reset the transform
+matrix to the 3×3 identity, thereby also resetting the transformed triangle
+view. Clicking "Switch to/from SDL2 Keys Mode" toggles between numerical input
+within this window and transform control in the transform window.
+
+## Transformed Triangle View (SDL2)
+<p style="text-align: center">
+    <img  src="img/tri-view.png" />
+</p>
+
+This window uses a lines-only triangle to display the transforms either created
+in the manipulation window or via the controls in Keys Mode. The controls for
+Keys Mode are listed in the two tables below.
+
+---
+
+|    Key     | Effected when pressed without `SHIFT`              |
+|:----------:|:---------------------------------------------------|
+|  `ESCAPE`  | Exit the program                                   |
+|    `TAB`   | Reset the transformation matix                     |
+|    `UP`    | Translate triangle upward                          |
+|   `DOWN`   | Translate triangle downward                        |
+|   `LEFT`   | Translate triangle to the left                     |
+|  `RIGHT`   | Translate triangle to the right                    |
+|    `8`     | Increase scale in the X axis                       |
+|    `7`     | Decrease scale in the X axis                       |
+|    `5`     | Increase skew in the X axis                        |
+|    `4`     | Decrease skew in the X axis                        |
+|    `1`     | Rotate the triangle to the left by one degree      |
+|    `2`     | Rotate the triangle to the right by one degree     |
+| `KP_9`/`0` | Increase distance along the Z axis                 |
+| `KP_6`/`9` | Decrease distance along the Z axis                 |
+| `KP_*`/`=` | Increase perspective distortion in the X direction |
+| `KP_/`/`-` | Decrease perspective distortion in the X direction |
+
+---
+
+|    Key     | Effected when `SHIFT` is being pressed             |
+|:----------:|:---------------------------------------------------|
+|    `8`     | Increase scale in the Y axis                       |
+|    `7`     | Decrease scale in the Y axis                       |
+|    `5`     | Increase skew in the Y axis                        |
+|    `4`     | Decrease skew in the Y axis                        |
+|    `1`     | Rotate the triangle to the left by ten degrees     |
+|    `2`     | Rotate the triangle to the right by ten degrees    |
+| `KP_*`/`=` | Increase perspective distortion in the Y direction |
+| `KP_/`/`-` | Decrease perspective distortion in the Y direction |
+
+---
+
+## Compiling
 You will need the following extra packages (along with whatever they depend on)
 in WSL to build this. You can also install the Windows versions of the libraries
 and try to build with MSYS2, though I have not tested this myself. These should
