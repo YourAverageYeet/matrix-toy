@@ -96,5 +96,7 @@ sudo apt install libfltk1.3t64 \
                  libsdl2-ttf-dev
 ```
 
-[CMake](https://cmake.org/download/) is required to build this software. If you
-wish to use the supplied `build2` script, you will also need Bash.
+CMake is required to build this software, and if you wish to use the supplied
+`build2` script, you will also need both Bash and Make. Bash is the main
+command shell in WSL, so only Make and CMake need to be installed. To do so,
+add both `make` and `cmake` to the command above.
